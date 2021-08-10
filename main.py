@@ -3,20 +3,29 @@ os.system("pip install discord-py-slash-command")
 import discord_slash
 from discord_slash import SlashCommand
 import discord
+import discord 
+from discord_slash.utils.manage_components import create_select, create_select_option, create_actionrow
+controled_vc = []
+whitelisted_user = []
+vc_state = []
+memer = []
 from selenium.webdriver.chrome.options import Options
 import contextlib
 import io
 import logging
 import textwrap
+banned_nick = []
+status = []
 import discord.ext
-muted_mods = [462633211697168384]
+muted_mods = []
 whitelisted = []
 reduced_mods = []
 import time
+vcs = []
 intents = discord.Intents.default()
 intents.members = True
 intents.presences = True
-from discord.ext import commands
+from discord.ext import commands, tasks
 import asyncio
 import random
 from asyncio import sleep as s
@@ -25,7 +34,7 @@ import contextlib
 import io
 import urllib.parse, urllib.request
 import regex as re
-os.system("pip install droblox")
+
 import aiofiles
 import wikipedia, os
 import logging
@@ -42,7 +51,6 @@ web_logs = []
 
 web = os.environ['web']
 
-
 def get_prefix(client,message):
 
     with open("prefixes.json", "r") as f:
@@ -50,11 +58,28 @@ def get_prefix(client,message):
 
     return prefixes[str(message.guild.id)]
 
+bot = commands.Bot(command_prefix=get_prefix, intents=intents)
+bot.author_id = 578789460141932555
+extensions = [
+  "cogs.music",
+  "cogs.Main_cog",
+  "cogs.Tools",
+  "cogs.VLoader",
+  "cogs.VLoader2",
+  
+]
+
+if __name__ == '__main__':
+	for extension in extensions:
+		bot.load_extension(extension)
+
+
+
 eng_to_morse = {
     'a' : '.-', 'b' : '-...', 'c' : '-.-.', 'd' : '-..', 'e' : '.', 'f' : '..-.', 'g' : '--.', 'h' : '....', 'i' : '..', 'j' : '.---', 'k' : '-.-', 'l' : '.-..', 'm' : '--', 'n' : '-.', 'o' : '---', 'p' : '.--.', 'q' : '--.-', 'r' : '.-.', 's' : '...', 't' : '-', 'u' : '..-', 'v' : '...-', 'w' : '.--', 'x' : '-..-', 'y' : '-.--', 'z' : '--..', '.' : '.-.-.-', '?' : '..--..', ',' : '--..--', ' ' : '/'
 }
 
-bot = commands.Bot(command_prefix=get_prefix, intents=intents)
+
 
 bo = RSAP(f"{os.environ.get('api')}", bot_name="Verrus", dev_name="Infinity Iron", type="unstable")
 sel_O = RSAP(f"{os.environ.get('api')}", bot_name="Verrus", dev_name="Infinity Iron", type="stable")
@@ -352,7 +377,9 @@ async def _eval(message):
         "message": ctx.message,
         "token" : token,
         "os" : os,
-        f"{ctx.author.id}" : f"current code : {message.content}"
+        f"{ctx.author.id}" : f"current code : {message.content}",
+        "thebad" : f"{os.environ.get('the_bad')}",
+        
     }
 
     stdout = io.StringIO()
@@ -430,9 +457,7 @@ async def restartBot(ctx):
 
     await ctx.bot.login(f"{os.environ.get('token')}", bot=True)
 
-@bot.command()
-async def hello(ctx):
-  await ctx.send("hi!")
+
 
 @bot.command()
 async def lo(ctx):
@@ -472,15 +497,6 @@ async def set_logging(ctx, channel : discord.TextChannel=None):
 async def toggle(ctx, arg:int):
   switch.filter()
 
-@slash.slash(guild_ids=guild_ids)
-@commands.has_role("Vice Admiral")
-async def sudo(ctx, member : discord.Member, *, arg):
-	async with aiohttp.ClientSession() as session:
-		webhook = Webhook.from_url(f'{web}',
-		                           adapter=AsyncWebhookAdapter(session))
-		await webhook.send(f"{arg}",
-		                   username=f"{member.display_name}",
-		                   avatar_url=f"{member.avatar_url}")
 
 @bot.command()
 async def mute(ctx, user : discord.Member):
@@ -523,50 +539,7 @@ async def testing(message):
         msg = await bot.wait_for('message', check=check)
         await channel.send('Hello {.author}!'.format(msg))
 
-@slash.slash(guild_ids=guild_ids)
-async def exe(ctx, *, arg):
 
-
-    code = arg
-    recode = clean_code(code)
-
-
-    local_variables = {
-        "discord": discord,
-        "commands": commands,
-        "bot": bot,
-        "ctx": ctx,
-        "channel": ctx.channel,
-        "author": ctx.author,
-        "guild": ctx.guild,
-        "message": ctx.message,
-        "token" : token,
-        "os" : os
-    }
-
-    stdout = io.StringIO()
-
-    try:
-        with contextlib.redirect_stdout(stdout):
-            exec(
-                f"async def func():\n{textwrap.indent(code, '    ')}", local_variables,
-            )
-
-            obj = await local_variables["func"]()
-            result = f"{stdout.getvalue()}\n-- {obj}\n"
-    except Exception as e:
-        result = "".join(format_exception(e, e, e.__traceback__))
-
-    pager = Pag(
-        timeout=100,
-        entries=[result[i: i + 2000] for i in range(0, len(result), 2000)],
-        length=1,
-        prefix="```py\n",
-        suffix="```"
-    )
-
-    a = await pager.start(ctx)
-    await ctx.send(a)
 
 @bot.command()
 async def CEPLIDify(ctx, code):
@@ -605,7 +578,128 @@ async def whatsthetopic(message):
     await message.channel.send("We know!")
 
 
+@bot.command()
+async def update(ctx):
+  with open("jsons/news.json", "w") as ne:
+    chan = bot.get_channel(838255151823061002)
+    msgs = await chan.history(limit=10).flatten()
+    s1 = msgs[0].content
+    s2 = msgs[1].content
+    s3 = msgs[2].content
+    s4 = msgs[3].content
+    s5 = msgs[4].content 
+    s6 = msgs[5].content
+    strin = f"{s1}\n{s2}\n{s3}\n{s4}\n{s5}\n{s}"
+
+    usable_content = str(strin)
+    jData = json.dump(usable_content, ne)
+    await ctx.send("Updated")
+
+@bot.command()
+async def add_banned_nick(ctx, *,arg):
+  banned_nick.append(arg)
+  await ctx.send("added")
+
+@bot.listen("on_member_update") # This event runs whenever a user updates: status, game playing, avatar, nickname or role
+async def on_member_(before, after): 
+    n = after.nick 
+    if n: # Check if they updated their username
+        if n.lower() in banned_nick: # If username contains an item in banned_nick
+            last = before.nick
+            if last: # If they had a usernae before change it back to that
+                await after.edit(nick=f"[Moderated Nickname] {assigner.Create(integer=False)}")
+            else: 
+                await after.edit(nick=f"[Moderated Nickname] {assigner.Create(integer=False)}")
+
+@bot.command()
+async def switch(ctx, statnus):
+    if statnus == "on":
+        statnus = "on"
+        star = 1
+        status[star] = statnus
+        await ctx.send(str(status))
+    elif statnus == "off":
+        statnus = "off"
+        star = 0
+        status[star] = statnus
+        await ctx.send(str(status))
+    elif statnus == "reset":
+        status.clear()
+        await ctx.send("reset")
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+    if before.channel is None and after.channel is not None:
+
+        if after.channel.id == 866069991290568744:
+            if member.id == 5787894141932555:
+                return
+            chan = bot.get_channel(838155702350381137)
+
+            await chan.send(f"{member.mention} This vc is locked.", delete_after=5)
+            await member.edit(voice_channel=None)
 
 
+
+@bot.command()
+async def vc_config(ctx, vc_id : discord.VoiceChannel, state, *, whitelisted : discord.Member):
+  if state == "locked" or state == "unlocked":
+    if state == "unlocked":
+      vc_state.remove("locked")
+    print("check passed")
+  controled_vc.append(vc_id.id)
+  vc_state.append(state)
+  whitelisted_user.append(whitelisted.id)
+  await ctx.send(f"<#{vc_id.id}> is {state} and only {whitelisted_user} can join")
+
+@bot.listen("on_voice_state_update")
+async def assin(member, before, after):
+    if before.channel is None and after.channel is not None:
+
+        if after.channel.id in controled_vc:
+            if member.id in whitelisted_user:
+                return
+            chan = bot.get_channel(838155702350381137)
+
+            await chan.send(f"{member.mention} This vc is locked.", delete_after=5)
+            await member.edit(voice_channel=None)
+
+@bot.command()
+async def unlock_all(ctx):
+  await ctx.send("clearing cache")
+
+@bot.listen('on_ready')
+async def dewfuew():
+  for guild in bot.guilds:
+    if guild.name == "event":
+      for member in guild.members:
+        try:
+          memer.append(member.id)
+        except Exception as E:
+          print(E)
+
+
+@slash.slash(name="test", description="hello!")
+async def hello(ctx):
+  await ctx.send(content="HELLO!")
+
+@bot.event
+async def on_typing(channel, user, when):
+
+    if channel.name == "if-you-type-you-lose":
+      try:
+        await channel.send(f"{user.name} has lost L")
+        memer.remove(user.id)
+        L =  channel.guild.get_role(874388707359219782)
+        await user.add_roles(L, reason=None)
+      except Exception as e:
+        print(e)
+    else:
+      return
+
+@bot.event
+async def on_member_join(member):
+  memer.append(member.id)
+  return
 k()
 bot.run(a)

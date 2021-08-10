@@ -13,13 +13,16 @@ def hello_world():
 
 @app.route('/HTopic')
 def ren():
+  with open("jsons/current_user.json", "r") as cj:
+    ya = cj.read()
+
   with open("jsons/data.json", "r") as o:
     raw = o.read()
     if raw == None:
       raw = "Set a topic and start talking!"
     else:
       raw = raw
-    return render_template("index.html", content=raw)
+    return render_template("index.html", content=raw, name=ya)
 
 @app.route('/Iron-News')
 def ran():
@@ -36,17 +39,23 @@ def keep_alive():
 
 @app.route("/logged-in")
 def login():
-	code = request.args.get("code")
+  code = request.args.get("code")
+  at = Oauth.get_access_token(code)
 
-	at = Oauth.get_access_token(code)
-	session["token"] = at
+  session["token"] = at
+  
+  user = Oauth.get_user_json(at)
+  
+  user_name, user_id, avatar, userid = user.get("username"), user.get("discriminator"), user.get("avatar"), user.get("id")
+  
+  with open("jsons/current_user.json", "w") as cj:
+    cj.write(user_id)
+  
+  return render_template("logged.html",name=user_name)
 
-	user = Oauth.get_user_json(at)
-	user_name, user_id = user.get("username"), user.get("discriminator")
-
-	return f"Success, logged in as {user_name}#{user_id}"
-
-
+@app.route('/more-options')
+def more():
+  return 'wip'
 @app.route("/login")
 def home():
 	return render_template("login.html",discord_url= Oauth.discord_login_url)
