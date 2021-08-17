@@ -34,7 +34,7 @@ import contextlib
 import io
 import urllib.parse, urllib.request
 import regex as re
-
+from pathlib import Path
 import aiofiles
 import wikipedia, os
 import logging
@@ -48,8 +48,18 @@ import aiohttp
 db = []
 switch = {}
 web_logs = []
-
+ceplid_verified = [874882719715295245, 854037584665903156]
 web = os.environ['web']
+
+def get_tag(tag_name):
+  with open("jsons/tag.json", "r") as D:
+    tag_loader = json.load(D)
+  try:  
+    loaded = tag_loader[tag_name]
+
+    return loaded
+  except KeyError:
+    return "Tag does not exist."
 
 def get_prefix(client,message):
 
@@ -66,6 +76,7 @@ extensions = [
   "cogs.Tools",
   "cogs.VLoader",
   "cogs.VLoader2",
+  "cogs.gitsearch",
   
 ]
 
@@ -74,6 +85,18 @@ if __name__ == '__main__':
 		bot.load_extension(extension)
 
 
+cwd = Path(__file__).parents[0]
+cwd = str(cwd)
+print(f"{cwd}\n-----")
+
+def read_json(filename):
+    with open(f"{cwd}/bot_config/{filename}.json", "r") as file:
+        data = json.load(file)
+    return data
+
+def write_json(data, filename):
+    with open(f"{cwd}/bot_config/{filename}.json", "w") as file:
+        json.dump(data, file, indent=4)
 
 eng_to_morse = {
     'a' : '.-', 'b' : '-...', 'c' : '-.-.', 'd' : '-..', 'e' : '.', 'f' : '..-.', 'g' : '--.', 'h' : '....', 'i' : '..', 'j' : '.---', 'k' : '-.-', 'l' : '.-..', 'm' : '--', 'n' : '-.', 'o' : '---', 'p' : '.--.', 'q' : '--.-', 'r' : '.-.', 's' : '...', 't' : '-', 'u' : '..-', 'v' : '...-', 'w' : '.--', 'x' : '-..-', 'y' : '-.--', 'z' : '--..', '.' : '.-.-.-', '?' : '..--..', ',' : '--..--', ' ' : '/'
@@ -106,38 +129,11 @@ async def fewifew(message):
 
 
 bot.warnings = {} # guild_id : {member_id: [count, [(admin_id, reason)]]}
-    
-@bot.event
-async def on_ready():
-    for guild in bot.guilds:
-        bot.warnings[guild.id] = {}
-        
-        async with aiofiles.open(f"{guild.id}.txt", mode="a") as temp:
-            pass
-
-        async with aiofiles.open(f"{guild.id}.txt", mode="r") as file:
-            lines = await file.readlines()
-
-            for line in lines:
-                data = line.split(" ")
-                member_id = int(data[0])
-                admin_id = int(data[1])
-                reason = " ".join(data[2:]).strip("\n")
-
-                try:
-                    bot.warnings[guild.id][member_id][0] += 1
-                    bot.warnings[guild.id][member_id][1].append((admin_id, reason))
-
-                except KeyError:
-                    bot.warnings[guild.id][member_id] = [1, [(admin_id, reason)]] 
-    
-    print(bot.user.name + " is ready.")
 
 
 
-@bot.event
-async def on_guild_join(guild):
-    bot.warnings[guild.id] = {}
+
+
 
 @bot.listen("on_guild_join")
 async def am(guild):
@@ -149,49 +145,6 @@ async def am(guild):
     with open("prefixes.json", "w") as f:
         json.dump(prefixes,f)
 
-@bot.command()
-@commands.has_permissions(administrator=True)
-async def warn(ctx, member: discord.Member=None, *, reason=None):
-    if member is None:
-        return await ctx.send("The provided member could not be found or you forgot to provide one.")
-        
-    if reason is None:
-        return await ctx.send("Please provide a reason for warning this user.")
-
-    try:
-        first_warning = False
-        bot.warnings[ctx.guild.id][member.id][0] += 1
-        bot.warnings[ctx.guild.id][member.id][1].append((ctx.author.id, reason))
-
-    except KeyError:
-        first_warning = True
-        bot.warnings[ctx.guild.id][member.id] = [1, [(ctx.author.id, reason)]]
-
-    count = bot.warnings[ctx.guild.id][member.id][0]
-
-    async with aiofiles.open(f"{ctx.guild.id}.txt", mode="a") as file:
-        await file.write(f"{member.id} {ctx.author.id} {reason}\n")
-
-    await ctx.send(f"{member.mention} has {count} {'warning' if first_warning else 'warnings'}.")
-
-@bot.command()
-@commands.has_permissions(administrator=True)
-async def warnings(ctx, member: discord.Member=None):
-    if member is None:
-        return await ctx.send("The provided member could not be found or you forgot to provide one.")
-    
-    embed = discord.Embed(title=f"Displaying Warnings for {member.name}", description="", colour=discord.Colour.red())
-    try:
-        i = 1
-        for admin_id, reason in bot.warnings[ctx.guild.id][member.id][1]:
-            admin = ctx.guild.get_member(admin_id)
-            embed.description += f"**Warning {i}** given by: {admin.mention} for: '{reason}'.\n"
-            i += 1
-
-        await ctx.send(embed=embed)
-
-    except KeyError: # no warnings
-        await ctx.send("This user has no warnings.")
 
 
 
@@ -222,14 +175,13 @@ async def on_message(msg):
 
             pre = prefixes[str(msg.guild.id)] 
 
-            await msg.channel.send(f"My prefix for this server is {pre}")
+            await msg.channel.send(f"My prefix for this server is `{pre}`")
 
     except:
         pass
     await bot.process_commands(msg)
 
-tags_dict = {"CEPLID" : "Python Code Execution Engine in discord"}
-print("Loaded tags: {}".format(tags_dict))
+
 
 token = os.environ.get("runawayT")
 
@@ -239,26 +191,12 @@ bot.warnings = {} # guild_id : {member_id: [count, [(admin_id, reason)]]}
 
 
 @bot.command()
-async def test(ctx, taggo):
-  for tag in taggo:
-    if tag in tags_dict:
-      print(tag)
-    else:
-      print("tag was not found")
-@bot.command()
 async def ping(ctx, web, *, data):
   import aiohttp
   async with aiohttp.post("https://gdm.bothost.repl.co", data=None):
     await ctx.send("pinging webserver with data")
 
 
-@bot.command()
-async def tag(ctx, tag):
-  for tag in tags_dict:
-    if tag in tags_dict:
-      print(tags_dict)
-    else:
-      print("didnt work")
 
 @bot.command()
 async def jsn(ctx, arg1, arg2):
@@ -361,7 +299,7 @@ async def _eval(message):
     return
   if message.author.id == 780835623006240809:
     return
-  if message.channel.id == 854037584665903156:
+  if message.channel.id in ceplid_verified:
     code = message.content
     recode = clean_code(code)
 
@@ -665,41 +603,92 @@ async def assin(member, before, after):
             await member.edit(voice_channel=None)
 
 @bot.command()
-async def unlock_all(ctx):
-  await ctx.send("clearing cache")
+async def unlock_all(he):
+  await he.send("clearing cache")
 
 @bot.listen('on_ready')
 async def dewfuew():
   for guild in bot.guilds:
-    if guild.name == "event":
-      for member in guild.members:
-        try:
-          memer.append(member.id)
-        except Exception as E:
-          print(E)
+      if guild.id == 876139985231806465:
+        for channel in guild.text_channels:
+          print(channel)
+          
+
+@bot.command()
+async def cbc(ctx, cmd):
+  channel = bot.get_channel(876139985231806468)
+  await channel.send(f"name= {cmd}")
+  await channel.send(f"guild_id= {ctx.guild.id}")
+  await channel.send(f"channnel_id= {ctx.channel.id}")
+
+@bot.listen('on_message')
+async def uqwd(msg):
+  m = msg.content
+  if msg.author.id == 578789460141932555 and m.startswith("```") and m.endswith("```"):
+    await msg.channel.send("BAD IRON")
+    await msg.delete()
+
+@bot.command()
+async def p(ctx):
+  """Get the bot's current websocket and API latency."""
+  start_time = time.time()
+  message = await ctx.send("Testing Ping...")
+  end_time = time.time()
 
 
-@slash.slash(name="test", description="hello!")
-async def hello(ctx):
-  await ctx.send(content="HELLO!")
+  await message.edit(content=f"Pong! {round(bot.latency * 1000)}ms\nAPI: {round((end_time - start_time) * 1000)}ms")
 
-@bot.event
-async def on_typing(channel, user, when):
+@bot.command()
+async def wta(ctx):
+  await ctx.send(file=discord.File("Screenshot 2021-08-15 000324.png"))
 
-    if channel.name == "if-you-type-you-lose":
-      try:
-        await channel.send(f"{user.name} has lost L")
-        memer.remove(user.id)
-        L =  channel.guild.get_role(874388707359219782)
-        await user.add_roles(L, reason=None)
-      except Exception as e:
-        print(e)
-    else:
-      return
+@bot.command()
+async def add_tag(ctx, tag_name, *, tag_response):
+  with open("jsons/tag.json", "r") as E:
+    a = json.load(E)
+    a[str(tag_name)] = tag_response
+  with open("jsons/tag.json", "w") as E:
+    json.dump(a, E)
+  await ctx.send("Tag saved!")
 
-@bot.event
-async def on_member_join(member):
-  memer.append(member.id)
-  return
+@bot.command()
+async def tag(ctx, tag):
+  await ctx.send(get_tag(tag_name=tag))
+
+@bot.listen("on_message")
+async def asd(message):
+    #ignore ourselves
+    if message.author.id == bot.user.id:
+        return
+
+    #blacklist system
+    if message.author.id in bot.blacklisted_users:
+        return
+
+
+    await bot.process_commands(message)
+
+@bot.command()
+@commands.is_owner()
+async def blacklist(ctx, userA: discord.Member):
+    if ctx.message.author.id == user.id:
+        await ctx.send("Hey, you cannot blacklist yourself!")
+        return
+
+    bot.blacklisted_users.append(user.id)
+    data = read_json("blacklist")
+    data["blacklistedUsers"].append(user.id)
+    write_json(data, "blacklist")
+    await ctx.send(f"Hey, I have blacklisted {user.name} for you.")
+
+@bot.command()
+@commands.is_owner()
+async def unblacklist(ctx, user: discord.Member):
+    bot.blacklisted_users.remove(user.id)
+    data = read_json("blacklist")
+    data["blacklistedUsers"].remove(user.id)
+    write_json(data, "blacklist")
+    await ctx.send(f"Hey, I have unblacklisted {user.name} for you.")
+
 k()
 bot.run(a)

@@ -1,0 +1,89 @@
+from modext import Hero
+import os
+import prsaw
+import rsap
+from rsap import RSAP
+from tokenGen import *
+import discord
+import random
+db = {}
+import logging
+import dislash
+from dislash import SlashClient, SelectMenu, SelectOption, ActionRow, Button, ButtonStyle
+import discord
+
+bot = commands.Bot(command_prefix="!")
+slash = SlashClient(bot)
+
+@bot.command()
+async def test(ctx):
+    msg = await ctx.send(
+        "This message has a select menu!",
+        components=[
+            SelectMenu(
+                custom_id="test",
+                placeholder="Choose up to 2 options",
+                max_values=2,
+                options=[
+                    SelectOption("Option 1", "value 1"),
+                    SelectOption("Option 2", "value 2"),
+                    SelectOption("Option 3", "value 3")
+                ]
+            )
+        ]
+    )
+    # Wait for someone to click on it
+    inter = await msg.wait_for_dropdown()
+    # Send what you received
+    labels = [option.label for option in inter.select_menu.selected_options]
+    await inter.reply(f"Options: {', '.join(labels)}")
+
+@bot.command()
+async def tst(ctx):
+    # Make a row of buttons
+    row_of_buttons = ActionRow(
+        Button(
+            style=ButtonStyle.blurple,
+            label="A dapper looking button",
+            custom_id="green"
+        ),
+        Button(
+            style=ButtonStyle.blurple,
+            label="totally a red button",
+            custom_id="red"
+        )
+    )
+    # Send a message with buttons
+    msg = await ctx.send(
+        "This message has buttons!",
+        components=[row_of_buttons]
+    )
+    # Wait for someone to click on them
+    def check(inter):
+        return inter.message.id == msg.id
+    inter = await ctx.wait_for_button_click(check)
+    # Send what you received
+    button_text = inter.clicked_button.label
+    await inter.reply(f"Button pressed : {button_text}")
+
+@bot.command()
+async def gen(ctx):
+    register(token_dropper=".env", env_var_name=f"{ctx.author.id}", token_confirmation=None, exportable=True, append_list="")
+    u = os.environ.get(f'{ctx.author.id}')
+    await ctx.send(internal_token)
+    await ctx.send()
+
+@bot.command()
+async def file(ctx):
+    pass
+
+@bot.command()
+async def bash(ctx, *, arg):
+    os.system(arg)
+
+
+@bot.command()
+async def _exec(ctx, arg):
+    Hero.ceplid(confirmation=True, code=arg, exportable=True)
+    emb = discord.Embed(title=None, description=str(CEPLID_output[arg]))
+    await ctx.send(embed=emb)
