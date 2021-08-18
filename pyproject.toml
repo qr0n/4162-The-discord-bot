@@ -23,6 +23,7 @@ aiofile = "^3.6.0"
 youtube_dl = "^2021.6.6"
 PyNaCl = "^1.4.0"
 pyfiglet = "^0.8.post1"
+"dislash.py" = "^1.4.7"
 
 [tool.poetry.dev-dependencies]
 

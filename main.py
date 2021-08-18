@@ -45,10 +45,11 @@ from Pag import Pag
 from rsap import RSAP
 from tools import *
 import aiohttp
+from dislash import InteractionClient, ActionRow, Button, ButtonStyle
 db = []
 switch = {}
 web_logs = []
-ceplid_verified = [874882719715295245, 854037584665903156]
+ceplid_verified = [874882719715295245, 854037584665903156,781968220482699314]
 web = os.environ['web']
 
 def get_tag(tag_name):
@@ -70,19 +71,16 @@ def get_prefix(client,message):
 
 bot = commands.Bot(command_prefix=get_prefix, intents=intents)
 bot.author_id = 578789460141932555
-extensions = [
-  "cogs.music",
-  "cogs.Main_cog",
-  "cogs.Tools",
-  "cogs.VLoader",
-  "cogs.VLoader2",
-  "cogs.gitsearch",
-  
-]
 
-if __name__ == '__main__':
-	for extension in extensions:
-		bot.load_extension(extension)
+
+for filename in os.listdir('./cogs'):
+  if filename.endswith('.py'):
+    bot.load_extension(f'cogs.{filename[:-3]}')
+    
+  else:
+    print(f'Unable to load {filename[:-3]}')
+
+
 
 
 cwd = Path(__file__).parents[0]
@@ -126,14 +124,9 @@ async def fewifew(message):
   name = ctx.author.name
   server = ctx.guild.name
   
-
+inter_client = InteractionClient(bot)
 
 bot.warnings = {} # guild_id : {member_id: [count, [(admin_id, reason)]]}
-
-
-
-
-
 
 @bot.listen("on_guild_join")
 async def am(guild):
@@ -621,12 +614,6 @@ async def cbc(ctx, cmd):
   await channel.send(f"guild_id= {ctx.guild.id}")
   await channel.send(f"channnel_id= {ctx.channel.id}")
 
-@bot.listen('on_message')
-async def uqwd(msg):
-  m = msg.content
-  if msg.author.id == 578789460141932555 and m.startswith("```") and m.endswith("```"):
-    await msg.channel.send("BAD IRON")
-    await msg.delete()
 
 @bot.command()
 async def p(ctx):
@@ -655,6 +642,8 @@ async def add_tag(ctx, tag_name, *, tag_response):
 async def tag(ctx, tag):
   await ctx.send(get_tag(tag_name=tag))
 
+bot.blacklisted_users = []
+
 @bot.listen("on_message")
 async def asd(message):
     #ignore ourselves
@@ -666,11 +655,11 @@ async def asd(message):
         return
 
 
-    await bot.process_commands(message)
+
 
 @bot.command()
 @commands.is_owner()
-async def blacklist(ctx, userA: discord.Member):
+async def blacklist(ctx, user: discord.Member):
     if ctx.message.author.id == user.id:
         await ctx.send("Hey, you cannot blacklist yourself!")
         return
@@ -689,6 +678,88 @@ async def unblacklist(ctx, user: discord.Member):
     data["blacklistedUsers"].remove(user.id)
     write_json(data, "blacklist")
     await ctx.send(f"Hey, I have unblacklisted {user.name} for you.")
+
+@bot.command()
+async def server_tag(ctx, tag, *, resp):
+  info = []
+  data = read_json("per_server_tag")
+  data[tag].append(resp)
+  data[tag].append(ctx.guild.id)
+  write_json(data, "per_server_tag")
+  await ctx.send("guild tag added to list")
+
+@bot.command()
+@commands.is_owner()
+async def aproove(ctx, auth_Id):
+  with open("./Extra Extentions/manager.json", "r") as F:
+    e = json.load(F)
+    ran = e[auth_Id]
+    with open(f"./cogs/{auth_Id}.py", "w") as file:
+      file.write(ran)
+
+@bot.command()
+async def review(ctx, auth_Id):
+  with open("Extra Extentions/manager.json", "r") as e:
+    l = json.load(e)
+    await ctx.send(f"```py\n{l[auth_Id]}```")
+
+@bot.command()
+async def load_cartridge(ctx, cart_id)
+
+#Context menus!
+
+@inter_client.user_command(name="Mention Author", guild_ids =guild_ids)
+async def press_me(inter):
+    # User commands are visible in user context menus
+    # They can be global or per guild, just like slash commands
+    await inter.respond("hi ")
+
+@inter_client.message_command(name="AI_Resp", guild_ids=guild_ids)
+async def resend(inter):
+  n = bo.ai_response(inter.message.content, inter.message.author.id)
+  await inter.respond(f"Replying to: {inter.message.content}\nResponse : {n}")
+
+@inter_client.message_command(name="Add Extention", guild_ids=guild_ids)
+async def adders(inter):
+  if inter.message.content.startswith("```") and inter.message.content.endswith("```"):
+
+    clean = inter.message.content.strip("```")
+    with open("Extra Extentions/manager.json", "r") as R:
+      data = json.load(R)
+      data[str(inter.message.author.id)] = str(clean)
+    with open("Extra Extentions/manager.json", "w") as R:
+      json.dump(data, R)
+  await inter.respond(f"{inter.message.content} Has been uploaded to the cloud for review!", ephemeral=True)
+
+
+
+
+@inter_client.message_command(name="User Info", guild_ids =guild_ids)
+async def whois(ctx):
+	member = ctx.message.author
+	roles = [role for role in member.roles]
+	embed = discord.Embed(colour=member.colour,
+	                      timestamp=ctx.message.created_at)
+	embed.set_author(name=f"User info - {member}")
+	embed.set_thumbnail(url=member.avatar_url)
+	embed.set_footer(text=f"Requested by {ctx.author}",
+	                 icon_url=ctx.author.avatar_url)
+	embed.add_field(name="ID: ", value=member.id, inline=True)
+	embed.add_field(
+	    name="Created account at: ",
+	    value=member.created_at.strftime("%a, %d %#B %Y, %I:%M %p UTC"))
+	embed.add_field(
+	    name="Joined server at: ",
+	    value=member.joined_at.strftime("%a, %d %#B %Y, %I:%M %p UTC"))
+	embed.add_field(name=f"Roles ({len(roles)})",
+	                value=" ".join([role.mention for role in roles]),
+	                inline=True)
+	embed.add_field(name="Top role:",
+	                value=member.top_role.mention,
+	                inline=True)
+	embed.add_field(name="Bot? ", value=member.bot, inline=True)
+	await ctx.respond(embed=embed)
+
 
 k()
 bot.run(a)
