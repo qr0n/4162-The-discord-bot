@@ -17,7 +17,7 @@ import textwrap
 banned_nick = []
 status = []
 import discord.ext
-muted_mods = []
+muted_mods = [2]
 whitelisted = []
 reduced_mods = []
 import time
@@ -49,9 +49,8 @@ from dislash import InteractionClient, ActionRow, Button, ButtonStyle
 db = []
 switch = {}
 web_logs = []
-ceplid_verified = [874882719715295245, 854037584665903156,781968220482699314]
+ceplid_verified = [874882719715295245, 854037584665903156,781968220482699314, 877724188859830315]
 web = os.environ['web']
-
 def get_tag(tag_name):
   with open("jsons/tag.json", "r") as D:
     tag_loader = json.load(D)
@@ -70,6 +69,7 @@ def get_prefix(client,message):
     return prefixes[str(message.guild.id)]
 
 bot = commands.Bot(command_prefix=get_prefix, intents=intents)
+guild_ids = [G.id for G in bot.guilds]
 bot.author_id = 578789460141932555
 
 
@@ -203,7 +203,7 @@ async def everything(ctx):
     names = guild.name
     id = guild.id
     le = len(bot.guilds)
-  embed = discord.Embed(title=f"Hi my name is {bot.user.name} my id is {bot.user.id}, and my nick name in this server is {bot.user.display_name}", description=f"i am currently connected to[{le}] {names} with a ping of {round(bot.latency * 1000)}")
+  embed = discord.Embed(title=f"Hi my name is {bot.user.name} my id is {bot.user.id}, and my nick name in this server is {bot.user.display_name}", description=f"i am currently connected to [{le}] {names} with a ping of {round(bot.latency * 1000)}")
   await ctx.send(embed=embed)
 
 @bot.command()
@@ -660,10 +660,6 @@ async def asd(message):
 @bot.command()
 @commands.is_owner()
 async def blacklist(ctx, user: discord.Member):
-    if ctx.message.author.id == user.id:
-        await ctx.send("Hey, you cannot blacklist yourself!")
-        return
-
     bot.blacklisted_users.append(user.id)
     data = read_json("blacklist")
     data["blacklistedUsers"].append(user.id)
@@ -703,7 +699,20 @@ async def review(ctx, auth_Id):
     l = json.load(e)
     await ctx.send(f"```py\n{l[auth_Id]}```")
 
+@bot.event
+async def on_command(ctx):
+  if ctx.author.id == 578789460141932555 and ctx.channel not in [838170746806075412, 866024988901638185]:
+    #await ctx.send("Hey! Iron you cant execute commands here")
+    return
+
 #Context menus!
+
+@inter_client.user_command(name="Press me", guild_ids=guild_ids)
+async def p423ess_me(inter):
+    # User commands are visible in user context menus
+    # They can be global or per guild, just like slash commands
+    await inter.respond(f"Hello {inter.author} and {inter.target}")
+
 
 @inter_client.user_command(name="Mention Author", guild_ids =guild_ids)
 async def press_me(inter):
@@ -726,13 +735,12 @@ async def adders(inter):
       data[str(inter.message.author.id)] = str(clean)
     with open("Extra Extentions/manager.json", "w") as R:
       json.dump(data, R)
-  await inter.respond(f"{inter.message.content} Has been uploaded to the cloud for review!", ephemeral=True)
-
+  await inter.respond(f"Your code has been uploaded to the cloud for review!", ephemeral=True)
 
 
 
 @inter_client.message_command(name="User Info", guild_ids =guild_ids)
-async def whois(ctx):
+async def hois(ctx):
 	member = ctx.message.author
 	roles = [role for role in member.roles]
 	embed = discord.Embed(colour=member.colour,

@@ -60,5 +60,10 @@ def more():
 def home():
 	return render_template("login.html",discord_url= Oauth.discord_login_url)
 
+@app.route('/tag-team/')
+def asd():
+  with open(f"bot.txt", "w"):
+    pass
+    return "operation done"
 if __name__ == "__main__":
 	app.run(debug=True)
