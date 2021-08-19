@@ -703,9 +703,6 @@ async def review(ctx, auth_Id):
     l = json.load(e)
     await ctx.send(f"```py\n{l[auth_Id]}```")
 
-@bot.command()
-async def load_cartridge(ctx, cart_id)
-
 #Context menus!
 
 @inter_client.user_command(name="Mention Author", guild_ids =guild_ids)
