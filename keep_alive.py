@@ -60,8 +60,8 @@ def more():
 def home():
 	return render_template("login.html",discord_url= Oauth.discord_login_url)
 
-@app.route('/tag-team/')
-def asd():
+@app.route('/tag-team/<name>')
+def asd(name):
   with open(f"bot.txt", "w"):
     pass
     return "operation done"

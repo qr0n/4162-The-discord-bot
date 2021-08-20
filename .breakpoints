@@ -11,15 +11,21 @@
     "main.py": [
       {
         "id": "71928d06-8ae6-40af-b4f1-7890e037c263",
-        "line": 12,
-        "version": 17428,
-        "index": 321
+        "line": 10,
+        "version": 17527,
+        "index": 109
       },
       {
         "id": "85d6dda2-68ce-4090-9713-29a9180bb855",
-        "line": 25,
-        "version": 17428,
-        "index": 592
+        "line": 20,
+        "version": 17527,
+        "index": 306
+      },
+      {
+        "id": "dff1e767-6911-4c06-b233-bede90cda22b",
+        "line": 24,
+        "version": 17527,
+        "index": 379
       }
     ],
     "tools.py": [
