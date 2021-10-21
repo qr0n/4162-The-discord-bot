@@ -1,6 +1,7 @@
 from flask import Flask, render_template,  request, session
 from tools import Linkify
 import json
+from replit import db
 
 from oauth import Oauth
 from threading import Thread
@@ -60,10 +61,18 @@ def more():
 def home():
 	return render_template("login.html",discord_url= Oauth.discord_login_url)
 
-@app.route('/tag-team/<name>')
-def asd(name):
+@app.route('/debug/')
+def pop():
+  return render_template('infinylink.html')
+
+@app.route('/tag-team/')
+def asd():
   with open(f"bot.txt", "w"):
     pass
     return "operation done"
+
+@app.route('/vc-logs')
+def log():
+  return str(db.keys())
 if __name__ == "__main__":
 	app.run(debug=True)

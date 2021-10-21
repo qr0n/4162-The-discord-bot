@@ -113,6 +113,8 @@ class Verrus(commands.Cog):
 
 	  await ctx.channel.send(embed=embed)
 
+
+
 def setup(bot):
   bot.add_cog(Verrus(bot))
   print("VL is on")

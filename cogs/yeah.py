@@ -6,9 +6,9 @@ class DevCommands(commands.Cog, name='Developer Commands'):
     self.bot = bot
 
 
-    @commands.command()
-    async def a_command(self, ctx, arg=None):
-      await ctx.send("a_thing")
+  @commands.command()
+  async def a_command(self, ctx, arg=None):
+    await ctx.send("a_thing")
       
 def setup(bot):
   bot.add_cog(DevCommands(bot))

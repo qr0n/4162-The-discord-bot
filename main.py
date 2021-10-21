@@ -1,12 +1,16 @@
 import os 
-
+from replit import db
+os.system("pip install discord-py-slash-command")
+import discord_slash
+from discord_slash import SlashCommand
 import discord
 import discord 
-
+from discord_slash.utils.manage_components import create_select, create_select_option, create_actionrow
 controled_vc = []
 whitelisted_user = []
 vc_state = []
 memer = []
+import requests
 from selenium.webdriver.chrome.options import Options
 import contextlib
 import io
@@ -43,12 +47,17 @@ from Pag import Pag
 from rsap import RSAP
 from tools import *
 import aiohttp
-from dislash import InteractionClient, ActionRow, Button, ButtonStyle, Option, OptionType
-db = []
+from dislash import InteractionClient, ActionRow, Button, ButtonStyle
+from discord.utils import get
+from automod_handler import check
+
+d = []
 switch = {}
 web_logs = []
-ceplid_verified = [874882719715295245, 854037584665903156,781968220482699314, 877724188859830315]
+a = "p"
+ceplid_verified = [874882719715295245, 854037584665903156,781968220482699314, 877724188859830315, 876139985231806468]
 web = os.environ['web']
+
 def get_tag(tag_name):
   with open("jsons/tag.json", "r") as D:
     tag_loader = json.load(D)
@@ -59,12 +68,17 @@ def get_tag(tag_name):
   except KeyError:
     return "Tag does not exist."
 
-def get_prefix(client,message):
+
+
+def get_prefix(client, message):
 
     with open("prefixes.json", "r") as f:
         prefixes = json.load(f)
-
-    return prefixes[str(message.guild.id)]
+    try:
+      return prefixes[str(message.guild.id)]
+    except Exception as E:
+      if type(E) == KeyError:
+        return "!"
 
 bot = commands.Bot(command_prefix=get_prefix, intents=intents)
 guild_ids = [G.id for G in bot.guilds]
@@ -89,6 +103,7 @@ def read_json(filename):
     with open(f"{cwd}/bot_config/{filename}.json", "r") as file:
         data = json.load(file)
     return data
+    
 
 def write_json(data, filename):
     with open(f"{cwd}/bot_config/{filename}.json", "w") as file:
@@ -105,7 +120,7 @@ sel_O = RSAP(f"{os.environ.get('api')}", bot_name="Verrus", dev_name="Infinity I
 obot2 =RSAP(f"{os.environ.get('api2')}", bot_name="Verrus", dev_name="Infinity Iron", type="stable")
 
 obot3 = RSAP(f"{os.environ.get('api3')}", bot_name="Verrus", dev_name="Infinity Iron", type="stable")
-
+slash = SlashCommand(bot, sync_commands=True)
 guild_ids = [759474157330366506, 781968220482699314]
 evaluators = [708124746872651807, 578789460141932555]
 from keep_alive import keep_alive as k
@@ -123,7 +138,7 @@ async def fewifew(message):
   server = ctx.guild.name
   
 inter_client = InteractionClient(bot)
-slash = InteractionClient(bot)
+
 bot.warnings = {} # guild_id : {member_id: [count, [(admin_id, reason)]]}
 
 @bot.listen("on_guild_join")
@@ -139,7 +154,7 @@ async def am(guild):
 
 
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 @commands.has_permissions(administrator = True)
 async def changeprefix(ctx, prefix):
 
@@ -151,7 +166,7 @@ async def changeprefix(ctx, prefix):
     with open("prefixes.json", "w") as f:
         json.dump(prefixes,f)    
 
-    await ctx.respond(f"The prefix was changed to {prefix}")
+    await ctx.send(f"The prefix was changed to {prefix}")
 
 
 
@@ -181,30 +196,30 @@ bot.warnings = {} # guild_id : {member_id: [count, [(admin_id, reason)]]}
     
 
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def ping(ctx, web, *, data):
   import aiohttp
   async with aiohttp.post("https://gdm.bothost.repl.co", data=None):
-    await ctx.respond("pinging webserver with data")
+    await ctx.send("pinging webserver with data")
 
 
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def jsn(ctx, arg1, arg2):
   with open('b.json', 'w') as h:
     m = json.load(h)
-    await ctx.respond(a)
+    await ctx.send(a)
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def everything(ctx):
   for guild in bot.guilds:
     names = guild.name
     id = guild.id
     le = len(bot.guilds)
   embed = discord.Embed(title=f"Hi my name is {bot.user.name} my id is {bot.user.id}, and my nick name in this server is {bot.user.display_name}", description=f"i am currently connected to [{le}] {names} with a ping of {round(bot.latency * 1000)}")
-  await ctx.respond(embed=embed)
+  await ctx.send(embed=embed)
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def ytsearch(ctx, *, search):
   qry_string = urllib.parse.urlencode({
     "search_query" : search
@@ -213,12 +228,12 @@ async def ytsearch(ctx, *, search):
     'https://www.youtube.com/results?' + qry_string
   )
   search_results = re.findall('href=\"\\/watch\\?v=(.{11})', htm_content.read().decode())
-  await ctx.respond("https://www.youtube.com/watch?v" + str(list(str(search_results))))
+  await ctx.send("https://www.youtube.com/watch?v" + str(list(str(search_results))))
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def channelinfo(ctx, channel : discord.TextChannel):
   embed = discord.Embed(title=f"Showing infomation for {channel.name}", description=f"ID : {channel.id}\nPos : {channel.position}\nName : {channel.name}\nTopic : {channel.topic}")
-  await ctx.respond(embed=embed)
+  await ctx.send(embed=embed)
 
 
 
@@ -266,18 +281,19 @@ async def collect(message):
     await ctx.reply(f"```\n{all}\n```", mention_author=True)
 
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
+@commands.is_owner()
 async def logout(ctx):
   await bot.close()
 
-@slash.command(guild_ids=guild_ids)
-async def tts(ctx):
-  await ctx.respond(content="moyai", tts=True)
+@bot.command()
+async def tts(ctx, *, content):
+  await ctx.send(content=content, tts=True)
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def slot(ctx, member : discord.Member=None):
   maybe = await bot.fetch_user_profile(member.id)
-  await ctx.respond(maybe)
+  await ctx.send(maybe)
 
 
 @bot.listen('on_message')
@@ -306,8 +322,10 @@ async def _eval(message):
         "message": ctx.message,
         "token" : token,
         "os" : os,
-        f"{ctx.author.id}" : f"current code : {message.content}",
+        f"{ctx.author.id}-c" : f"current code : {message.content}",
         "thebad" : f"{os.environ.get('the_bad')}",
+        "-c" : f'{message.content}',
+        '-w': f"{ctx.channel.webhooks}"
         
     }
 
@@ -333,7 +351,7 @@ async def _eval(message):
     )
 
     a = await pager.start(ctx)
-    await ctx.respond(a)
+    await ctx.send(a)
   else:
     return
 
@@ -357,7 +375,7 @@ async def verruschaneler(message):
     return
   else:
     channeler = bot.get_channel(848338279383957534)
-    if(message.channel.id == 848338279383957534):
+    if(message.channel.id == None):
       channeler = bot.get_channel(848338279383957534)
     else:
       return
@@ -372,17 +390,27 @@ async def verruschaneler(message):
       await ctx.reply(resp, mention_author=False)
     await ctx.reply(response, mention_author=False)
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def trustat(ctx, member : discord.Member):
   getting = await bot.fetch_user(member.id)
   tru = discord.Embed(title=f"Showing true status for {member}", description=f"{member.status}")
-  await ctx.respond(embed=tru)
+  await ctx.send(embed=tru)
 
-@slash.command(guild_ids=guild_ids)
+
+
+@bot.command()
+@commands.is_owner()
+async def restartBot(ctx):
+
+    await ctx.bot.login(f"{os.environ.get('token')}", bot=True)
+
+
+
+@bot.command()
 async def lo(ctx):
-  await ctx.respond("hi!")
+  await ctx.send("hi!")
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def mcode(ctx, word):
   outstr = ''
   space = ' '
@@ -393,42 +421,45 @@ async def mcode(ctx, word):
 
   for i in word:
     if i not in eng_to_morse:
-        await ctx.respond('Data not formatted properly', delete_after=5)
+        await ctx.send('Data not formatted properly', delete_after=5)
         time.sleep(5)
         break
     else:
       mcodetranslation = (eng_to_morse[i])
       print(eng_to_morse[i], end=' ')
-      await ctx.respond(mcodetranslation)
 
-@slash.command(guild_ids=guild_ids)
+      await ctx.send("".join(mcodetranslation))
+
+@bot.command()
 async def set_logging(ctx, channel : discord.TextChannel=None):
   if channel == None:
     channel = ctx.channel.id
-    db.append(int(channel))
+    d.append(int(channel))
     got = bot.get_channel(channel)
   else:
     channel = channel
     get = await bot.get_channel(channel)
-    await ctx.respond("ser ")
+    await ctx.send("ser ")
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def toggle(ctx, arg:int):
   switch.filter()
 
 
-@slash.command(guild_ids=guild_ids)
-async def mute(ctx, user : discord.Member):
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def shh(ctx, user : discord.Member):
   muted_mods.append(user.id)
-  await ctx.respond(f"<@{user.id}> is muted")
+  await ctx.send(f"<@{user.id}> has been shh'd")
 
-@slash.command(guild_ids=guild_ids)
-async def unmute(ctx, user : discord.Member):
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def unshh(ctx, user : discord.Member):
   if ctx.author.id in muted_mods:
-    await ctx.respond(f"{ctx.author.mention} Sorry but you are being restricted from doing this action.")
+    await ctx.send(f"{ctx.author.mention} Sorry but you are being restricted from doing this action.")
     return
   muted_mods.remove(user.id)
-  await ctx.respond(f"<@{user.id}> is unmuted")
+  await ctx.send(f"<@{user.id}> has been unshhed")
 
 @bot.listen("on_message")
 async def listen(message):
@@ -437,14 +468,14 @@ async def listen(message):
   else:
     return
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def upload(ctx, thing):
   Upload.upload(thing)
-  await ctx.respond("ok")
+  await ctx.send("ok")
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def linkify(ctx, ya):
-  await ctx.respond(Link.linkify(linker=ya))
+  await ctx.send(Link.linkify(linker=ya))
         
 @bot.listen("on_message")
 async def testing(message):
@@ -460,7 +491,9 @@ async def testing(message):
 
 
 
-
+@bot.command()
+async def CEPLIDify(ctx, code):
+  await ctx.send(CEPLID.exe(code=code))
 
 mass_dict = {}
 
@@ -470,18 +503,18 @@ my_secret = os.environ['token']
 
 json_data = None
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def get_json(ctx):
-  await ctx.respond("working on it.")
+  await ctx.send("working on it.")
   with open("jsons/data.json", "r") as f:
     raw = f.read()
     json_data = json.loads(raw)
   
-  await ctx.respond(str(json_data))
+  await ctx.send(str(json_data))
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def settopic(ctx, *, arg):
-  await ctx.respond("working on it.")
+  await ctx.send("working on it.")
 
   with open("jsons/data.json", "w") as j:
     json.dump(arg, j)
@@ -490,12 +523,12 @@ async def settopic(ctx, *, arg):
 @bot.listen("on_message")
 async def whatsthetopic(message):
   if message.content == "whats the topic" or message.content ==  "what are we talking about?":
-    await message.channel.send("Hey here's what we're talking about! https://gdm.bothost.repl.co/HTopic")
+    await message.channel.send("Hey here's what we're talking about! https://4162.bothost.repl.co/HTopic")
   elif message.content == ":deadchat:" or message.content == "<:deadchat:628795754672029696>":
     await message.channel.send("We know!")
 
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def update(ctx):
   with open("jsons/news.json", "w") as ne:
     chan = bot.get_channel(838255151823061002)
@@ -510,12 +543,12 @@ async def update(ctx):
 
     usable_content = str(strin)
     jData = json.dump(usable_content, ne)
-    await ctx.respond("Updated")
+    await ctx.send("Updated")
 
-@slash.command(guild_ids=guild_ids)
-async def add_banned_nick(ctx, arg):
+@bot.command()
+async def add_banned_nick(ctx, *,arg):
   banned_nick.append(arg)
-  await ctx.respond("added")
+  await ctx.send("added")
 
 @bot.listen("on_member_update") # This event runs whenever a user updates: status, game playing, avatar, nickname or role
 async def on_member_(before, after): 
@@ -528,21 +561,21 @@ async def on_member_(before, after):
             else: 
                 await after.edit(nick=f"[Moderated Nickname] {assigner.Create(integer=False)}")
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def switch(ctx, statnus):
     if statnus == "on":
         statnus = "on"
         star = 1
         status[star] = statnus
-        await ctx.respond(str(status))
+        await ctx.send(str(status))
     elif statnus == "off":
         statnus = "off"
         star = 0
         status[star] = statnus
-        await ctx.respond(str(status))
+        await ctx.send(str(status))
     elif statnus == "reset":
         status.clear()
-        await ctx.respond("reset")
+        await ctx.send("reset")
 
 @bot.event
 async def on_voice_state_update(member, before, after):
@@ -558,7 +591,7 @@ async def on_voice_state_update(member, before, after):
 
 
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def vc_config(ctx, vc_id : discord.VoiceChannel, state, *, whitelisted : discord.Member):
   if state == "locked" or state == "unlocked":
     if state == "unlocked":
@@ -567,7 +600,7 @@ async def vc_config(ctx, vc_id : discord.VoiceChannel, state, *, whitelisted : d
   controled_vc.append(vc_id.id)
   vc_state.append(state)
   whitelisted_user.append(whitelisted.id)
-  await ctx.respond(f"<#{vc_id.id}> is {state} and only {whitelisted_user} can join")
+  await ctx.send(f"<#{vc_id.id}> is {state} and only {whitelisted_user} can join")
 
 @bot.listen("on_voice_state_update")
 async def assin(member, before, after):
@@ -581,19 +614,16 @@ async def assin(member, before, after):
             await chan.send(f"{member.mention} This vc is locked.", delete_after=5)
             await member.edit(voice_channel=None)
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def unlock_all(he):
   await he.send("clearing cache")
 
 @bot.listen('on_ready')
 async def dewfuew():
-  for guild in bot.guilds:
-      if guild.id == 876139985231806465:
-        for channel in guild.text_channels:
-          print(channel)
+  await bot.change_presence(status=discord.Status.offline)
           
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def cbc(ctx, cmd):
   channel = bot.get_channel(876139985231806468)
   await channel.send(f"name= {cmd}")
@@ -601,35 +631,56 @@ async def cbc(ctx, cmd):
   await channel.send(f"channnel_id= {ctx.channel.id}")
 
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def p(ctx):
   """Get the bot's current websocket and API latency."""
   start_time = time.time()
-  message = await ctx.respond("Testing Ping...")
+  message = await ctx.send("Testing Ping...")
   end_time = time.time()
 
 
   await message.edit(content=f"Pong! {round(bot.latency * 1000)}ms\nAPI: {round((end_time - start_time) * 1000)}ms")
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def wta(ctx):
-  await ctx.reply(file=discord.File("Screenshot 2021-08-15 000324.png"))
+  await ctx.send("""```bf
 
-@slash.command(
-  guild_ids=guild_ids,
-  options=[Option("tag_name", "Sets the name for the tag", OptionType.STRING),
-  [Option("tag_name", "Sets the name for the tag", OptionType.STRING)])
-async def add_tag(ctx, tag_name, tag_response):
+        \          SORRY           /
+         \                        /
+          \    I still don't     /
+           ]   know who the fuck [    ,'|
+           ]      asked.         [   /  |
+           ]___               ___[ ,'   |
+           ]  ]\             /[  [ |:   |
+           ]  ] \           / [  [ |:   |
+           ]  ]  ]         [  [  [ |:   |
+           ]  ]  ]__     __[  [  [ |:   |
+           ]  ]  ] ]\ _ /[ [  [  [ |:   |
+           ]  ]  ] ] (#) [ [  [  [ :===='
+           ]  ]  ]_].nHn.[_[  [  [
+           ]  ]  ]  HHHHH. [  [  [
+           ]  ] /   `HH("N  \ [  [
+           ]__]/     HHH  "  \[__[
+           ]         NNN         [
+           ]         N/"         [
+           ]         N H         [
+          /          N            \
+         /           q,            \
+        /                           \
+        ```""")
+
+@bot.command()
+async def add_tag(ctx, tag_name, *, tag_response):
   with open("jsons/tag.json", "r") as E:
     a = json.load(E)
     a[str(tag_name)] = tag_response
   with open("jsons/tag.json", "w") as E:
     json.dump(a, E)
-  await ctx.respond("Tag saved!")
+  await ctx.send("Tag saved!")
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def tag(ctx, tag):
-  await ctx.respond(get_tag(tag_name=tag))
+  await ctx.send(get_tag(tag_name=tag))
 
 bot.blacklisted_users = []
 
@@ -643,37 +694,34 @@ async def asd(message):
     if message.author.id in bot.blacklisted_users:
         return
 
-
-
-
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 @commands.is_owner()
 async def blacklist(ctx, user: discord.Member):
     bot.blacklisted_users.append(user.id)
     data = read_json("blacklist")
     data["blacklistedUsers"].append(user.id)
     write_json(data, "blacklist")
-    await ctx.respond(f"Hey, I have blacklisted {user.name} for you.")
+    await ctx.send(f"Hey, I have blacklisted {user.name} for you.")
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 @commands.is_owner()
 async def unblacklist(ctx, user: discord.Member):
     bot.blacklisted_users.remove(user.id)
     data = read_json("blacklist")
     data["blacklistedUsers"].remove(user.id)
     write_json(data, "blacklist")
-    await ctx.respond(f"Hey, I have unblacklisted {user.name} for you.")
+    await ctx.send(f"Hey, I have unblacklisted {user.name} for you.")
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def server_tag(ctx, tag, *, resp):
   info = []
   data = read_json("per_server_tag")
   data[tag].append(resp)
   data[tag].append(ctx.guild.id)
   write_json(data, "per_server_tag")
-  await ctx.respond("guild tag added to list")
+  await ctx.send("guild tag added to list")
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 @commands.is_owner()
 async def aproove(ctx, auth_Id):
   with open("./Extra Extentions/manager.json", "r") as F:
@@ -682,17 +730,110 @@ async def aproove(ctx, auth_Id):
     with open(f"./cogs/{auth_Id}.py", "w") as file:
       file.write(ran)
 
-@slash.command(guild_ids=guild_ids)
+@bot.command()
 async def review(ctx, auth_Id):
   with open("Extra Extentions/manager.json", "r") as e:
     l = json.load(e)
-    await ctx.respond(f"```py\n{l[auth_Id]}```")
+    await ctx.send(f"```py\n{l[auth_Id]}```")
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def hush(ctx, user: discord.Member=None):
+  if user == None:
+    await ctx.send("User was not provided.")
+    return
+  role = get(ctx.author.guild.roles, name="Control Muted")
+  try:
+    await user.add_roles(role)
+    await ctx.send(f"{user.mention} has been hush'd")
+  except discord.Forbidden:
+    await ctx.send("An error occured please check if I have sufficient permissions to hush this user.")
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def unhush(ctx, user:discord.Member):
+  role = get(ctx.author.guild.roles, name="Control Muted")
+  await user.remove_roles(role)
+  await ctx.send(f"{user.mention} has been unhush'd")
+
+@bot.command()
+async def clean(ctx):
+  pass
+
+@bot.command(aliases=["h"])
+@commands.has_permissions(manage_channels=True)
+async def hide(ctx, channel: discord.TextChannel = None, *, Reason=None):
+	channel = channel or ctx.channel
+	overwrite = channel.overwrites_for(ctx.guild.default_role)
+	overwrite.view_channel = False
+	await channel.set_permissions(ctx.guild.default_role, overwrite=overwrite)
+	embedAAAAB = discord.Embed(title="Channel Hidden.➖",
+	                           description=f"Reason: ```md\n{Reason}```",
+	                           color=0x3A56D4)
+	await ctx.send(embed=embedAAAAB)
+
+@bot.command(aliases=["uh"])
+@commands.has_permissions(manage_channels=True)
+async def unhide(ctx, channel: discord.TextChannel = None, *, Reason=None):
+	channel = channel or ctx.channel
+	overwrite = channel.overwrites_for(ctx.guild.default_role)
+	overwrite.view_channel = None
+	await channel.set_permissions(ctx.guild.default_role, overwrite=overwrite)
+	embedAAAAB = discord.Embed(
+    title="Channel Unhidden.👁️", 
+    color=0x3A56D4)
+	await ctx.send(embed=embedAAAAB)
 
 @bot.event
 async def on_command(ctx):
   if ctx.author.id == 578789460141932555 and ctx.channel not in [838170746806075412, 866024988901638185]:
-    #await ctx.respond("Hey! Iron you cant execute commands here")
+    #await ctx.send("Hey! Iron you cant execute commands here")
     return
+
+
+
+THRESHOLD = 2
+m = []
+time_ = time.time()
+
+def antiraid(member):
+    global m
+    global time_
+    m.append(member)
+    ret = False
+    if time.time() - time_ >= 15.0:
+        time_ = time.time()
+        if len(m) >= THRESHOLD:
+            ret = True
+        m = []
+    return ret
+
+@bot.listen("on_voice_state_update")
+async def sin(member, before, after):
+    if before.channel is None and after.channel is not None:
+      i = 0
+      db[f"{member}|{member.id}|{assigner.Create()}|"] = f"{assigner.Create()}"
+
+@bot.event
+async def on_member_join(member):
+    bool_ = antiraid(member)
+    raid_chan = bot.get_channel(838155702350381137)
+    try:
+      await raid_chan.send(bool_)
+      if bool_ == True:
+        await member.kick()
+      elif bool_ == False:
+        return
+      else:
+        return await raid_chan.send("bool_ returned an unknown value error")
+    except discord.errors.HTTPException as E:
+      await raid_chan.send(E)
+    except discord.Forbidden:
+      await raid_chan.send("I'm missing `kick members` permission.")
+
+@bot.command()
+async def get_act(ctx, user: discord.Member):
+  activity_task.start(user)
 
 #Context menus!
 
@@ -701,7 +842,6 @@ async def p423ess_me(inter):
     # User commands are visible in user context menus
     # They can be global or per guild, just like slash commands
     await inter.respond(f"Hello {inter.author} and {inter.target}")
-
 
 @inter_client.user_command(name="Mention Author", guild_ids =guild_ids)
 async def press_me(inter):
@@ -713,6 +853,11 @@ async def press_me(inter):
 async def resend(inter):
   n = bo.ai_response(inter.message.content, inter.message.author.id)
   await inter.respond(f"Replying to: {inter.message.content}\nResponse : {n}")
+
+@inter_client.message_command(name="Imagine", guild_ids=guild_ids)
+async def txt2img(ctx):
+  r = requests.post("https://api.deepai.org/api/text2img", data={'text': f'{ctx.message.content}'}, headers={'api-key': '0fd1b759-2a11-4787-9b66-9360dbf50cc9'})
+  await ctx.send(r.json()["output_url"])
 
 @inter_client.message_command(name="Add Extention", guild_ids=guild_ids)
 async def adders(inter):
@@ -752,8 +897,25 @@ async def hois(ctx):
 	                value=member.top_role.mention,
 	                inline=True)
 	embed.add_field(name="Bot? ", value=member.bot, inline=True)
-	await ctx.respond(embed=embed, ephemeral=True)
+	await ctx.respond(embed=embed)
 
+@tasks.loop(seconds=5)
+async def activity_task(self, message):
+  mentions = message.mentions
+  if len(mentions) == 0:
+    await message.reply("Remember to give someone to get status!")
+  else:
+    activ = mentions[0].activity
+    if activ is None:
+        await message.reply("None")
+    else:
+        await message.reply(activ.name)
 
+@activity_task.before_loop
+async def before_my_task(self):
+  await self.wait_until_ready()
+
+check._open(kw=None)
 k()
+print(type(db))
 bot.run(a)
