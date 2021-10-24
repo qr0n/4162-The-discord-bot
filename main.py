@@ -49,7 +49,7 @@ from tools import *
 import aiohttp
 from dislash import InteractionClient, ActionRow, Button, ButtonStyle
 from discord.utils import get
-from automod_handler import check
+
 
 d = []
 switch = {}
@@ -915,7 +915,6 @@ async def activity_task(self, message):
 async def before_my_task(self):
   await self.wait_until_ready()
 
-check._open(kw=None)
 k()
 print(type(db))
 bot.run(a)
