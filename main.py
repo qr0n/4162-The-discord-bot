@@ -821,7 +821,9 @@ async def on_member_join(member):
     try:
       await raid_chan.send(bool_)
       if bool_ == True:
+        await raid_chan.send(f"4162: [SERVER PROTECTION]: Auto Anti raid has been triggered kicking {member.name}({member.id})")
         await member.kick()
+        
       elif bool_ == False:
         return
       else:

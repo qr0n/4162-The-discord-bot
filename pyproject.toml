@@ -24,6 +24,8 @@ pyfiglet = "^0.8.post1"
 "dislash.py" = "^1.4.7"
 python-dotenv = "^0.19.0"
 replit = "^3.2.4"
+translate = "^3.6.1"
+ocrspace = "^2.3.0"
 
 [tool.poetry.dev-dependencies]
 
