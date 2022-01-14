@@ -4,17 +4,13 @@ os.system("pip install discord-py-slash-command")
 import discord_slash
 from discord_slash import SlashCommand
 import discord
-import discord 
-from discord_slash.utils.manage_components import create_select, create_select_option, create_actionrow
 controled_vc = []
 whitelisted_user = []
 vc_state = []
 memer = []
 import requests
-from selenium.webdriver.chrome.options import Options
 import contextlib
 import io
-import logging
 import textwrap
 banned_nick = []
 status = []
@@ -28,31 +24,20 @@ intents = discord.Intents.default()
 intents.members = True
 intents.presences = True
 from discord.ext import commands, tasks
-import asyncio
-import random
 from asyncio import sleep as s
 import json
-import contextlib
-import io
 import urllib.parse, urllib.request
 import regex as re
 from pathlib import Path
-import aiofiles
-import wikipedia, os
-import logging
-#from discord.ext import menus
-import jishaku
-from discord import Webhook, AsyncWebhookAdapter
 from Pag import Pag
 from rsap import RSAP
-from tools import *
-import aiohttp
-from dislash import InteractionClient, ActionRow, Button, ButtonStyle
+from tools import assigner, switch, CEPLID
+from dislash import InteractionClient
 from discord.utils import get
-
+from keep_alive import keep_alive as k
+from traceback import format_exception
 
 d = []
-switch = {}
 web_logs = []
 a = "p"
 ceplid_verified = [874882719715295245, 854037584665903156,781968220482699314, 877724188859830315, 876139985231806468]
@@ -114,29 +99,19 @@ eng_to_morse = {
 }
 
 
-
 bo = RSAP(f"{os.environ.get('api')}", bot_name="Verrus", dev_name="Infinity Iron", type="unstable")
+
 sel_O = RSAP(f"{os.environ.get('api')}", bot_name="Verrus", dev_name="Infinity Iron", type="stable")
+
 obot2 =RSAP(f"{os.environ.get('api2')}", bot_name="Verrus", dev_name="Infinity Iron", type="stable")
 
 obot3 = RSAP(f"{os.environ.get('api3')}", bot_name="Verrus", dev_name="Infinity Iron", type="stable")
+
 slash = SlashCommand(bot, sync_commands=True)
+
 guild_ids = [759474157330366506, 781968220482699314]
 evaluators = [708124746872651807, 578789460141932555]
-from keep_alive import keep_alive as k
-# Third party libraries
-import textwrap
-from traceback import format_exception
 a = os.environ.get("token")
-
-
-@bot.listen("on_message")
-async def fewifew(message):
-  ctx = await bot.get_context(message)
-  relay = message.content
-  name = ctx.author.name
-  server = ctx.guild.name
-  
 inter_client = InteractionClient(bot)
 
 bot.warnings = {} # guild_id : {member_id: [count, [(admin_id, reason)]]}
@@ -202,22 +177,6 @@ async def ping(ctx, web, *, data):
   async with aiohttp.post("https://gdm.bothost.repl.co", data=None):
     await ctx.send("pinging webserver with data")
 
-
-
-@bot.command()
-async def jsn(ctx, arg1, arg2):
-  with open('b.json', 'w') as h:
-    m = json.load(h)
-    await ctx.send(a)
-
-@bot.command()
-async def everything(ctx):
-  for guild in bot.guilds:
-    names = guild.name
-    id = guild.id
-    le = len(bot.guilds)
-  embed = discord.Embed(title=f"Hi my name is {bot.user.name} my id is {bot.user.id}, and my nick name in this server is {bot.user.display_name}", description=f"i am currently connected to [{le}] {names} with a ping of {round(bot.latency * 1000)}")
-  await ctx.send(embed=embed)
 
 @bot.command()
 async def ytsearch(ctx, *, search):
@@ -289,12 +248,6 @@ async def logout(ctx):
 @bot.command()
 async def tts(ctx, *, content):
   await ctx.send(content=content, tts=True)
-
-@bot.command()
-async def slot(ctx, member : discord.Member=None):
-  maybe = await bot.fetch_user_profile(member.id)
-  await ctx.send(maybe)
-
 
 @bot.listen('on_message')
 @commands.has_role("Evaluators")
@@ -412,11 +365,6 @@ async def lo(ctx):
 
 @bot.command()
 async def mcode(ctx, word):
-  outstr = ''
-  space = ' '
-  senc = 0
-  wordprocces = 0
-
   lenword = len(word)
 
   for i in word:
@@ -467,15 +415,6 @@ async def listen(message):
     await message.delete()
   else:
     return
-
-@bot.command()
-async def upload(ctx, thing):
-  Upload.upload(thing)
-  await ctx.send("ok")
-
-@bot.command()
-async def linkify(ctx, ya):
-  await ctx.send(Link.linkify(linker=ya))
         
 @bot.listen("on_message")
 async def testing(message):
@@ -523,7 +462,7 @@ async def settopic(ctx, *, arg):
 @bot.listen("on_message")
 async def whatsthetopic(message):
   if message.content == "whats the topic" or message.content ==  "what are we talking about?":
-    await message.channel.send("Hey here's what we're talking about! https://4162.bothost.repl.co/HTopic")
+    await message.channel.send("Hey here's what we're talking about! https://4162.qr0n.repl.co/HTopic")
   elif message.content == ":deadchat:" or message.content == "<:deadchat:628795754672029696>":
     await message.channel.send("We know!")
 
@@ -539,7 +478,8 @@ async def update(ctx):
     s4 = msgs[3].content
     s5 = msgs[4].content 
     s6 = msgs[5].content
-    strin = f"{s1}\n{s2}\n{s3}\n{s4}\n{s5}\n{s}"
+    strin = f"""
+    {s1}<br></br>{s2}<br></br>{s3}<br></br>{s4}<br></br>{s5}<br></br>{s}"""
 
     usable_content = str(strin)
     jData = json.dump(usable_content, ne)
@@ -560,22 +500,6 @@ async def on_member_(before, after):
                 await after.edit(nick=f"[Moderated Nickname] {assigner.Create(integer=False)}")
             else: 
                 await after.edit(nick=f"[Moderated Nickname] {assigner.Create(integer=False)}")
-
-@bot.command()
-async def switch(ctx, statnus):
-    if statnus == "on":
-        statnus = "on"
-        star = 1
-        status[star] = statnus
-        await ctx.send(str(status))
-    elif statnus == "off":
-        statnus = "off"
-        star = 0
-        status[star] = statnus
-        await ctx.send(str(status))
-    elif statnus == "reset":
-        status.clear()
-        await ctx.send("reset")
 
 @bot.event
 async def on_voice_state_update(member, before, after):
@@ -758,19 +682,24 @@ async def unhush(ctx, user:discord.Member):
 
 @bot.command()
 async def clean(ctx):
-  pass
+  for i in ctx.guild.channels:
+    overwrite = i.overwrites_for(ctx.guild.default_role)
+    overwrite.view_channel = None
+    await i.set_permissions(ctx.guild.default_role, overwrite=overwrite)
+    await ctx.send(f"{i} hidden")
 
 @bot.command(aliases=["h"])
 @commands.has_permissions(manage_channels=True)
 async def hide(ctx, channel: discord.TextChannel = None, *, Reason=None):
-	channel = channel or ctx.channel
-	overwrite = channel.overwrites_for(ctx.guild.default_role)
-	overwrite.view_channel = False
-	await channel.set_permissions(ctx.guild.default_role, overwrite=overwrite)
-	embedAAAAB = discord.Embed(title="Channel Hidden.➖",
-	                           description=f"Reason: ```md\n{Reason}```",
-	                           color=0x3A56D4)
-	await ctx.send(embed=embedAAAAB)
+  channel = channel or ctx.channel
+  overwrite = channel.overwrites_for(ctx.guild.default_role)
+  overwrite.view_channel = False
+  await channel.set_permissions(ctx.guild.default_role, overwrite=overwrite)
+  embedAAAAB = discord.Embed(title="Channel Hidden.➖", description=f"Reason: ```md\n{Reason}```", color=0x3A56D4)
+  await ctx.send(embed=embedAAAAB)
+  ch = bot.get_channel(channel.id)
+  await ch.send(embed=embedAAAAB)
+  
 
 @bot.command(aliases=["uh"])
 @commands.has_permissions(manage_channels=True)

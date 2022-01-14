@@ -1,12 +1,13 @@
 import requests
 import os
+
 cs = os.environ.get("cs")
 class Oauth:
     client_id = "780835623006240809" # Your Client ID here
-    client_secret = f"{cs}" # Your Client Secret here
-    redirect_uri = "https://gdm.bothost.repl.co/logged-in"
-    scope = "identify%20guilds"
-    discord_login_url = "https://discord.com/api/oauth2/authorize?client_id=780835623006240809&permissions=123429059825&redirect_uri=https%3A%2F%2Fgdm.bothost.repl.co%2Flogged-in&response_type=code&scope=identify%20guilds%20bot" # Paste the generated Oauth2 link here
+    client_secret = cs # Your Client Secret here
+    redirect_uri = "https://4162.qr0n.repl.co/logged-in"
+    scope = "identify%20guilds%20bot"
+    discord_login_url = "https://discord.com/api/oauth2/authorize?client_id=780835623006240809&permissions=0&redirect_uri=https%3A%2F%2F4162.qr0n.repl.co%2Flogged-in&response_type=code&scope=identify%20guilds%20bot" # Paste the generated Oauth2 link here
     discord_token_url = "https://discord.com/api/oauth2/token"
     discord_api_url = "https://discord.com/api"
  
@@ -31,7 +32,7 @@ class Oauth:
         headers = {"Authorization": f"Bearer {access_token}"}
  
         user_object = requests.get(url = url, headers = headers).json()
-        the_thing, the_things_avatar = user_object["id"], user_object["avatar"]
-        print(f"https://cdn.discord.com/avatars/{the_thing}/{the_things_avatar}.png?size=256")
+        the_things_avatar = user_object["avatar"]
+        print(f"https://cdn.discord.com/avatars/578789460141932555/{the_things_avatar}.png?size=256")
         return user_object
 

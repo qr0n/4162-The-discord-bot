@@ -31,13 +31,6 @@ def ran():
     raw = n.read()
   return render_template("news_updater.html", content=raw)
 
-def run():
-  app.run(host='0.0.0.0',port=8042)
-
-def keep_alive():
-    t = Thread(target=run)
-    t.start()
-
 @app.route("/logged-in")
 def login():
   code = request.args.get("code")
@@ -74,5 +67,10 @@ def asd():
 @app.route('/vc-logs')
 def log():
   return str(db.keys())
-if __name__ == "__main__":
-	app.run(debug=True)
+
+def run():
+  app.run(host='0.0.0.0',port=8042)
+
+def keep_alive():
+    t = Thread(target=run)
+    t.start()
