@@ -1,4 +1,5 @@
 import os 
+import aiohttp
 from replit import db
 os.system("pip install discord-py-slash-command")
 import discord_slash
@@ -32,11 +33,11 @@ from pathlib import Path
 from Pag import Pag
 from rsap import RSAP
 from tools import assigner, switch, CEPLID
-from dislash import InteractionClient
+from dislash import InteractionClient, Option, OptionType
 from discord.utils import get
 from keep_alive import keep_alive as k
 from traceback import format_exception
-
+from discord import Webhook, AsyncWebhookAdapter
 d = []
 web_logs = []
 a = "p"
@@ -112,7 +113,7 @@ slash = SlashCommand(bot, sync_commands=True)
 guild_ids = [759474157330366506, 781968220482699314]
 evaluators = [708124746872651807, 578789460141932555]
 a = os.environ.get("token")
-inter_client = InteractionClient(bot)
+inter_client = InteractionClient(bot, test_guilds=[759474157330366506])
 
 bot.warnings = {} # guild_id : {member_id: [count, [(admin_id, reason)]]}
 
@@ -126,8 +127,35 @@ async def am(guild):
     with open("prefixes.json", "w") as f:
         json.dump(prefixes,f)
 
+@inter_client.slash_command(name="sudo", description="Says hello", guild_ids=[759474157330366506], options=[Option("user", "Enter the user", OptionType.USER, required=True), Option("arg", "example option", OptionType.STRING, required=True)])
+async def say(ctx, user : discord.Member, *, arg):
+  async with aiohttp.ClientSession() as session:
+    if arg in ["@everyone", "@here"]:
+      return await ctx.send(f"No sudo pings, {ctx.author.mention}")
+    else:
+      webhook = Webhook.from_url(f'{web}', adapter=AsyncWebhookAdapter(session))
+      await webhook.send(f"{arg}", username=f"{user.display_name}", avatar_url=f"{user.avatar_url}")
+      await ctx.send("Sent", ephemeral=True)
+    
+@inter_client.slash_command(name="newuser", description="Creates a new user", guild_ids=[759474157330366506], options=[Option("icon", "url", OptionType.STRING), Option("username", "Enter the user", OptionType.STRING), Option("arg", "example option", OptionType.STRING)])
+async def newuser(ctx, icon, username, *, arg):
+  async with aiohttp.ClientSession() as session:
+    if arg in ["@everyone", "@here"]:
+      return await ctx.send(f"No sudo pings, {ctx.author.mention}")
+    else:
+      webhook = Webhook.from_url(f'{web}', adapter=AsyncWebhookAdapter(session))
+      await webhook.send(f"{arg}", username=f"{username}", avatar_url=f"{icon}")
+      await ctx.send("Sent", ephemeral=True)
 
-
+# @bot.command()
+# #@commands.has_role("...")
+# async def say(ctx, member : discord.Member, *, arg):
+# 	async with aiohttp.ClientSession() as session:
+# 		webhook = Webhook.from_url(f'{web}',
+# 		                           adapter=AsyncWebhookAdapter(session))
+# 		await webhook.send(f"{arg}",
+# 		                   username=f"{member.display_name}({ctx.author.name})",
+# 		                   avatar_url=f"{member.avatar_url}")
 
 @bot.command()
 @commands.has_permissions(administrator = True)
@@ -458,7 +486,6 @@ async def settopic(ctx, *, arg):
   with open("jsons/data.json", "w") as j:
     json.dump(arg, j)
 
-
 @bot.listen("on_message")
 async def whatsthetopic(message):
   if message.content == "whats the topic" or message.content ==  "what are we talking about?":
@@ -766,6 +793,34 @@ async def on_member_join(member):
 async def get_act(ctx, user: discord.Member):
   activity_task.start(user)
 
+# @bot.command()
+# async def terry(ctx):
+#   channel = ctx.channel
+#   messages = await channel.history(limit=100).flatten()
+#   members = []
+#   for msg in messages:
+#     if msg.author not in members:
+#       members.append(msg.author)
+#       #if len(members) == 10:
+#       muted_mods.append(members.id)
+#       return await ctx.send(f"{len(members)} members were muted.") 
+#!@
+
+@bot.command()
+@commands.is_owner()
+async def terry_mode(ctx):
+  messages = await ctx.channel.history(limit=100).flatten()
+  message_authors = list(dict.fromkeys([message.author.id for message in messages]))
+  authors = message_authors[:10]
+  muted_mods.extend(authors)
+  muted_mods.remove(str(578789460141932555))
+  return await ctx.send(f"{len(muted_mods)} were muted, (<@578789460141932555>) was kept immune.")
+
+
+
+# messages = await ctx.channel.history(limit=100).flatten()
+# message_authors = list(dict.fromkeys([message.author.name for message in messages]))
+# authors = message_authors[:10]
 #Context menus!
 
 @inter_client.user_command(name="Press me", guild_ids=guild_ids)
